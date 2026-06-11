@@ -680,25 +680,92 @@ button, input {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
 
-/* ===== iPad展示最強版 追加調整 ===== */
-#screen-title.screen.active{display:grid;}
-#screen-subject.screen.active{display:grid;}
-#screen-quiz.screen.active{display:grid;}
-#screen-result.screen.active{display:grid;}
-.choices-grid{grid-template-columns:1fr !important; gap:12px;}
-.btn-choice{min-height:74px; padding:18px 22px; font-size:clamp(18px,2.4vw,28px);}
-.center-timer{
-  align-self:center; margin-bottom:12px; padding:12px 26px; border-radius:999px;
-  border:2px solid rgba(0,229,200,.35); background:rgba(0,229,200,.08);
-  color:var(--a1); font-size:clamp(20px,3.2vw,38px); font-weight:900;
-  letter-spacing:.04em; box-shadow:0 0 22px rgba(0,229,200,.10);
+
+/* ===== iPad展示最終版：表示欠け・数式崩れ対策 ===== */
+#app{
+  height:100dvh;
+  max-height:100dvh;
+  overflow:hidden;
 }
-.center-timer.urgent{color:var(--ng); border-color:rgba(255,61,110,.7); background:rgba(255,61,110,.14); animation:pulse .5s infinite alternate;}
-.question-text{font-size:clamp(26px,4.2vw,52px);}
-.btn-primary{min-height:64px;}
-.streak-msg{display:none; padding:10px 14px; border-radius:14px; background:rgba(255,179,0,.14); color:#ffc107; font-weight:900; font-size:clamp(16px,2vw,24px);}
+.screen.active{display:grid;}
+.two-pane{min-height:0;}
+.card{
+  min-height:0;
+  overflow:auto;
+  -webkit-overflow-scrolling:touch;
+}
+.card-center{min-height:0;}
+.topbar{
+  min-height:auto;
+  flex-wrap:wrap;
+}
+.topbar-right{
+  min-width:0;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.brand{min-width:0;}
+.pill.subject-pill{max-width:180px;}
+.btn-primary,.btn-secondary,.btn-subject,.btn-choice{
+  min-width:0;
+  white-space:normal;
+  overflow:visible;
+  text-overflow:clip;
+  line-height:1.35;
+}
+.btn-primary,.btn-secondary{min-height:60px;}
+.subject-grid{grid-template-columns:1fr 1fr; gap:12px;}
+.btn-subject{min-height:96px; padding:18px 20px;}
+.choices-grid{grid-template-columns:1fr !important; gap:12px;}
+.btn-choice{
+  min-height:76px;
+  padding:16px 20px;
+  font-size:clamp(17px,2.2vw,26px);
+  align-items:stretch;
+  word-break:normal;
+  overflow-wrap:anywhere;
+}
+.btn-choice span:last-child{display:block; line-height:1.35;}
+.math-display sup,.math-display sub,.btn-choice sup,.btn-choice sub,.ans-row sup,.ans-row sub,.hist-row sup,.hist-row sub{
+  line-height:0;
+  font-size:.72em;
+}
+.question-text{
+  font-size:clamp(24px,3.6vw,46px);
+  line-height:1.35;
+  overflow-wrap:anywhere;
+}
+.center-timer{
+  align-self:center;
+  margin-bottom:10px;
+  padding:10px 22px;
+  border-radius:999px;
+  border:2px solid rgba(0,229,200,.35);
+  background:rgba(0,229,200,.08);
+  color:var(--a1);
+  font-size:clamp(20px,3vw,34px);
+  font-weight:900;
+  letter-spacing:.04em;
+  box-shadow:0 0 22px rgba(0,229,200,.10);
+}
+.center-timer.urgent{
+  color:var(--ng);
+  border-color:rgba(255,61,110,.72);
+  background:rgba(255,61,110,.14);
+  animation:pulse .5s infinite alternate;
+}
+.timer{display:none;}
+.streak-msg{
+  display:none;
+  padding:10px 14px;
+  border-radius:14px;
+  background:rgba(255,179,0,.14);
+  color:#ffc107;
+  font-weight:900;
+  font-size:clamp(16px,2vw,24px);
+}
 .streak-msg.show{display:block; animation:correctPulse .55s var(--ease) both;}
-.auto-next{font-size:clamp(12px,1.4vw,16px); color:var(--muted); font-weight:800;}
+.auto-next{font-size:clamp(12px,1.4vw,16px); color:var(--muted); font-weight:800; min-height:1.4em;}
 .perfect-overlay{
   position:fixed; inset:0; z-index:300; display:none; place-items:center; text-align:center;
   background:radial-gradient(circle at center, rgba(255,193,7,.24), rgba(7,17,29,.92) 60%);
@@ -708,8 +775,26 @@ button, input {
 .perfect-overlay div{font-size:clamp(48px,10vw,120px); filter:drop-shadow(0 0 30px rgba(255,193,7,.65));}
 .perfect-overlay span{display:block; margin-top:14px; color:#fff; font-size:clamp(22px,4vw,52px);}
 @keyframes perfectPop{0%{opacity:0;transform:scale(.9)}15%{opacity:1;transform:scale(1.04)}80%{opacity:1}100%{opacity:0;transform:scale(1)}}
-@media (min-width: 901px){#screen-quiz.two-pane{grid-template-columns:1.08fr .92fr;}}
-@media (max-width:900px){.topbar-right{width:100%; justify-content:space-between}.timer{display:none}.prog-wrap{flex:1; min-width:90px}.card{border-radius:22px}.btn-choice{min-height:78px}}
+@media (min-width:901px){#screen-quiz.two-pane{grid-template-columns:1.05fr .95fr;}}
+@media (max-width:900px){
+  body{overflow:hidden;}
+  #app{height:100dvh; min-height:100dvh; overflow:hidden;}
+  .screen.two-pane{grid-template-columns:1fr; gap:10px;}
+  #screen-quiz.two-pane{grid-template-rows:minmax(0,1.35fr) minmax(190px,.65fr);}
+  .topbar-right{width:100%; justify-content:space-between; gap:6px;}
+  .prog-wrap{flex:1; min-width:90px;}
+  .subject-grid{grid-template-columns:1fr 1fr;}
+  .btn-subject{min-height:82px; padding:14px 16px;}
+  .card{padding:clamp(14px,2.6vw,26px); border-radius:20px;}
+  .question-text{font-size:clamp(22px,5vw,38px); margin:8px 0 14px;}
+  .btn-choice{min-height:64px; padding:13px 16px; font-size:clamp(16px,3.6vw,23px);}
+  .center-timer{font-size:clamp(18px,4.5vw,30px); padding:8px 18px; margin-bottom:6px;}
+}
+@media (max-width:520px){
+  .subject-grid{grid-template-columns:1fr;}
+  .topbar-right{align-items:stretch;}
+  .pill,.sound-btn{padding:6px 10px;}
+}
 
 </style>
 </head>
@@ -735,7 +820,7 @@ button, input {
     <div class="card card-center">
       <div class="tag-list"><span class="tag">iPad 体験版</span><span class="tag">2026</span></div>
       <div class="title-hero">数学・情報<br>チャレンジ</div>
-      <p class="title-sub">中学数学，高校数学，情報Ⅰから<br>分野を選び 10問のクイズに挑戦。</p>
+      <p class="title-sub">中学数学，高校数学，情報Ⅰから<br>分野を選んで，すぐに挑戦。</p>
       <button class="btn-primary" id="startBtn" style="align-self:flex-start">
         タップしてスタート →
       </button>
@@ -821,7 +906,7 @@ button, input {
 const SUBJECTS = {
   "中学数学": [
     {q:"正負の数：−3＋8 の値は？",          cs:["−11","−5","5","11"],                ans:2, lv:1, expl:"数直線で −3 から右へ8進むので 5。"},
-    {q:"文字式：3x＋2x を簡単にすると？",    cs:["5x","6x","x⁵","5＋x"],              ans:0, lv:1, expl:"同類項をまとめます。3x＋2x＝5x。"},
+    {q:"文字式：3x＋2x を簡単にすると？",    cs:["5x","6x","x^5","5＋x"],              ans:0, lv:1, expl:"同類項をまとめます。3x＋2x＝5x。"},
     {q:"方程式：2x＋4＝10 の解は？",         cs:["2","3","4","5"],                    ans:1, lv:1, expl:"両辺から4を引くと 2x＝6，よって x＝3。"},
     {q:"比例：y＝4x で x＝3 のとき y は？",  cs:["7","8","12","16"],                   ans:2, lv:1, expl:"x に3を代入して y＝4×3＝12。"},
     {q:"反比例：y＝12/x で x＝4 のとき y は？", cs:["2","3","4","8"],                 ans:1, lv:2, expl:"12÷4＝3。"},
@@ -832,79 +917,79 @@ const SUBJECTS = {
     {q:"コイン1枚で表が出る確率は？",        cs:["1/4","1/3","1/2","1"],              ans:2, lv:2, expl:"表・裏の2通りのうち表は1通り。1/2。"},
   ],
   "数学Ⅰ": [
-    {q:"x²−5x＋6＝0 の解は？",               cs:["1,6","2,3","−2,−3","解なし"],       ans:1, lv:2, expl:"(x−2)(x−3)＝0 より x＝2, 3。"},
-    {q:"y＝x²−4x＋1 の最小値は？",           cs:["−5","−3","1","5"],                  ans:1, lv:3, expl:"平方完成 y＝(x−2)²−3。最小値 −3。"},
+    {q:"x^2−5x＋6＝0 の解は？",               cs:["1,6","2,3","−2,−3","解なし"],       ans:1, lv:2, expl:"(x−2)(x−3)＝0 より x＝2, 3。"},
+    {q:"y＝x^2−4x＋1 の最小値は？",           cs:["−5","−3","1","5"],                  ans:1, lv:3, expl:"平方完成 y＝(x−2)²−3。最小値 −3。"},
     {q:"cos 60° の値は？",                   cs:["1/2","√2/2","√3/2","1"],            ans:0, lv:2, expl:"三角比の基本値。cos 60°＝1/2。"},
     {q:"1,4,8,10,15 の中央値は？",           cs:["4","8","10","15"],                  ans:1, lv:2, expl:"5個並べた中央（3番目）は 8。"},
-    {q:"(x＋2)² を展開すると？",              cs:["x²＋2x＋4","x²＋4x＋4","x²＋4","2x＋4"], ans:1, lv:2, expl:"(a＋b)²＝a²＋2ab＋b²。"},
+    {q:"(x＋2)² を展開すると？",              cs:["x^2＋2x＋4","x^2＋4x＋4","x^2＋4","2x＋4"], ans:1, lv:2, expl:"(a＋b)²＝a²＋2ab＋b²。"},
     {q:"sin 90° の値は？",                   cs:["0","1/2","1","√3/2"],               ans:2, lv:1, expl:"単位円の最上点の y 座標は 1。"},
     {q:"A＝{1,2,3}, B＝{3,4} の A∩B は？",  cs:["{1,2}","{3}","{1,2,3,4}","{4}"],   ans:1, lv:2, expl:"共通部分は両方に属する要素。{3}。"},
     {q:"| −7 | の値は？",                    cs:["−7","0","7","14"],                  ans:2, lv:1, expl:"絶対値は0からの距離。| −7 |＝7。"},
-    {q:"x²＝16 の解は？",                    cs:["4","−4","±4","8"],                  ans:2, lv:2, expl:"正負両方を考えて x＝±4。"},
+    {q:"x^2＝16 の解は？",                    cs:["4","−4","±4","8"],                  ans:2, lv:2, expl:"正負両方を考えて x＝±4。"},
     {q:"相関係数が1に近いときの関係は？",     cs:["強い正の相関","強い負の相関","相関なし","必ず比例"], ans:0, lv:2, expl:"1に近いほど強い正の相関。"},
   ],
   "数学Ⅱ": [
-    {q:"2⁵ ÷ 2² の値は？",                  cs:["2","4","8","16"],                   ans:2, lv:2, expl:"同底の割り算は指数を引く。2^(5−2)＝2³＝8。"},
-    {q:"log₁₀(1000) の値は？",              cs:["1","2","3","10"],                   ans:2, lv:2, expl:"10³＝1000 なので log₁₀1000＝3。"},
-    {q:"y＝x³−3x の導関数は？",             cs:["3x²−3","x²−3","3x²","x³−3"],       ans:0, lv:3, expl:"x³ → 3x²，−3x → −3。"},
-    {q:"∫(2x＋1)dx は？",                   cs:["x²＋x＋C","2x²＋x＋C","x²＋C","2＋C"], ans:0, lv:3, expl:"2x→x²，1→x。積分定数Cを忘れずに。"},
-    {q:"円 x²＋y²＝25 の半径は？",          cs:["5","10","25","√5"],                 ans:0, lv:2, expl:"x²＋y²＝r² と比較して r＝5。"},
+    {q:"2⁵ ÷ 2^2 の値は？",                  cs:["2","4","8","16"],                   ans:2, lv:2, expl:"同底の割り算は指数を引く。2^(5−2)＝2^3＝8。"},
+    {q:"log10(1000) の値は？",              cs:["1","2","3","10"],                   ans:2, lv:2, expl:"10³＝1000 なので log101000＝3。"},
+    {q:"y＝x^3−3x の導関数は？",             cs:["3x^2−3","x^2−3","3x^2","x^3−3"],       ans:0, lv:3, expl:"x^3 → 3x^2，−3x → −3。"},
+    {q:"∫(2x＋1)dx は？",                   cs:["x^2＋x＋C","2x^2＋x＋C","x^2＋C","2＋C"], ans:0, lv:3, expl:"2x→x^2，1→x。積分定数Cを忘れずに。"},
+    {q:"円 x^2＋y²＝25 の半径は？",          cs:["5","10","25","√5"],                 ans:0, lv:2, expl:"x^2＋y²＝r² と比較して r＝5。"},
     {q:"i² は？",                            cs:["−1","0","1","i"],                   ans:0, lv:2, expl:"虚数単位の定義：i²＝−1。"},
     {q:"sin 180° は？",                     cs:["0","1/2","1","−1"],                 ans:0, lv:2, expl:"単位円で180°の y 座標は 0。"},
-    {q:"log₂8＋log₂4 の値は？",            cs:["3","4","5","6"],                    ans:2, lv:3, expl:"log₂8＝3，log₂4＝2，合わせて 3＋2＝5。"},
+    {q:"log28＋log24 の値は？",            cs:["3","4","5","6"],                    ans:2, lv:3, expl:"log28＝3，log24＝2，合わせて 3＋2＝5。"},
     {q:"y＝5x の導関数は？",               cs:["5","x","5x","0"],                   ans:0, lv:2, expl:"一次関数の傾きがそのまま導関数。y'＝5。"},
-    {q:"x²−4x＋5＝0 の判別式 D は？",     cs:["−4","0","4","20"],                  ans:0, lv:3, expl:"D＝b²−4ac＝16−20＝−4。"},
+    {q:"x^2−4x＋5＝0 の判別式 D は？",     cs:["−4","0","4","20"],                  ans:0, lv:3, expl:"D＝b²−4ac＝16−20＝−4。"},
   ],
   "数学Ⅲ": [
     {q:"lim(x→0) sinx/x の値は？",          cs:["0","1","∞","存在しない"],           ans:1, lv:3, expl:"基本極限。sinx/x → 1 (x→0)。"},
-    {q:"y＝x⁴ の導関数は？",               cs:["x³","4x³","4x⁴","x⁵/5"],           ans:1, lv:2, expl:"べき関数の微分。nx^(n−1) → 4x³。"},
-    {q:"y＝eˣ の導関数は？",               cs:["eˣ","xeˣ","1/x","log x"],          ans:0, lv:2, expl:"eˣ は微分してもeˣ。"},
-    {q:"∫1/x dx は？（x＞0）",             cs:["x²/2＋C","log x＋C","1/x²＋C","eˣ＋C"], ans:1, lv:3, expl:"1/x の積分は log x＋C。"},
+    {q:"y＝x^4 の導関数は？",               cs:["x^3","4x^3","4x^4","x^5/5"],           ans:1, lv:2, expl:"べき関数の微分。nx^(n−1) → 4x^3。"},
+    {q:"y＝e^x の導関数は？",               cs:["e^x","xe^x","1/x","log x"],          ans:0, lv:2, expl:"e^x は微分してもe^x。"},
+    {q:"∫1/x dx は？（x＞0）",             cs:["x^2/2＋C","log x＋C","1/x^2＋C","e^x＋C"], ans:1, lv:3, expl:"1/x の積分は log x＋C。"},
     {q:"y＝sinx の導関数は？",             cs:["sinx","cosx","−sinx","−cosx"],      ans:1, lv:2, expl:"三角関数の微分。(sinx)'＝cosx。"},
-    {q:"∫₀¹ 2x dx の値は？",              cs:["0","1","2","4"],                    ans:1, lv:3, expl:"原始関数 x² を0から1で評価。1²−0²＝1。"},
+    {q:"∫0〜1 2x dx の値は？",              cs:["0","1","2","4"],                    ans:1, lv:3, expl:"原始関数 x^2 を0から1で評価。1^2−0^2＝1。"},
     {q:"無限等比級数 1＋1/2＋1/4＋… の和は？", cs:["1","2","4","発散"],            ans:1, lv:4, expl:"初項1，公比1/2。和 S＝1/(1−1/2)＝2。"},
     {q:"log x の定義域は？",              cs:["すべての実数","x＞0","x≧0","x≠0"],  ans:1, lv:2, expl:"対数の真数条件：x＞0。"},
-    {q:"y＝x² 上の x＝1 での接線の傾きは？", cs:["1","2","3","4"],                  ans:1, lv:3, expl:"y'＝2x。x＝1 を代入して 2。"},
-    {q:"∫₀¹ eˣ dx の値は？",             cs:["e−1","e","1","0"],                   ans:0, lv:4, expl:"[eˣ]₀¹＝e¹−e⁰＝e−1。"},
+    {q:"y＝x^2 上の x＝1 での接線の傾きは？", cs:["1","2","3","4"],                  ans:1, lv:3, expl:"y'＝2x。x＝1 を代入して 2。"},
+    {q:"∫0〜1 e^x dx の値は？",             cs:["e−1","e","1","0"],                   ans:0, lv:4, expl:"[e^x]0〜1＝e¹−e⁰＝e−1。"},
   ],
   "数学A": [
-    {q:"5人から2人を選ぶ組合せは？",        cs:["5","10","20","25"],                  ans:1, lv:2, expl:"₅C₂＝5×4÷2＝10。"},
+    {q:"5人から2人を選ぶ組合せは？",        cs:["5","10","20","25"],                  ans:1, lv:2, expl:"5C2＝5×4÷2＝10。"},
     {q:"サイコロ1個で偶数が出る確率は？",   cs:["1/6","1/3","1/2","2/3"],             ans:2, lv:1, expl:"偶数は{2,4,6}の3通り。3/6＝1/2。"},
     {q:"A,B,C,D を一列に並べる順列の数は？", cs:["4","8","12","24"],                  ans:3, lv:2, expl:"4!＝4×3×2×1＝24。"},
     {q:"正五角形の1つの内角は？",          cs:["90°","108°","120°","135°"],         ans:1, lv:2, expl:"内角の和 540°÷5＝108°。"},
-    {q:"2進法の 1011₂ を10進法にすると？", cs:["9","10","11","12"],                  ans:2, lv:2, expl:"8＋0＋2＋1＝11。"},
+    {q:"2進法の 1011(2) を10進法にすると？", cs:["9","10","11","12"],                  ans:2, lv:2, expl:"8＋0＋2＋1＝11。"},
     {q:"互いに素な組はどれ？",             cs:["6と9","8と12","14と21","15と28"],    ans:3, lv:3, expl:"gcd(15,28)＝1。"},
     {q:"P(A)=1/2, P(B)=1/3，独立のとき P(A∩B)=？", cs:["1/6","1/5","2/3","5/6"],  ans:0, lv:3, expl:"独立なら P(A∩B)＝P(A)·P(B)＝1/6。"},
-    {q:"10進法の13を2進法にすると？",      cs:["1010","1011","1101","1110"],         ans:2, lv:2, expl:"13＝8＋4＋1＝1101₂。"},
-    {q:"₈C₂ の値は？",                    cs:["16","24","28","32"],                 ans:2, lv:2, expl:"8×7÷2＝28。"},
+    {q:"10進法の13を2進法にすると？",      cs:["1010","1011","1101","1110"],         ans:2, lv:2, expl:"13＝8＋4＋1＝1101(2)。"},
+    {q:"8C2 の値は？",                    cs:["16","24","28","32"],                 ans:2, lv:2, expl:"8×7÷2＝28。"},
     {q:"P(A)=0.4 のとき，Aが起きない確率は？", cs:["0.4","0.5","0.6","1.4"],        ans:2, lv:1, expl:"余事象 1−0.4＝0.6。"},
   ],
   "数学B": [
     {q:"等差数列 3,7,11,… の公差は？",    cs:["3","4","7","11"],                    ans:1, lv:1, expl:"7−3＝4。"},
-    {q:"初項2，公比3の等比数列の第4項は？", cs:["18","27","54","81"],                ans:2, lv:2, expl:"2×3³＝2×27＝54。"},
+    {q:"初項2，公比3の等比数列の第4項は？", cs:["18","27","54","81"],                ans:2, lv:2, expl:"2×3^3＝2×27＝54。"},
     {q:"1＋2＋…＋10 の値は？",            cs:["45","50","55","60"],                 ans:2, lv:1, expl:"10×11÷2＝55。"},
-    {q:"aₙ＝2n＋1 の第5項は？",           cs:["9","10","11","12"],                  ans:2, lv:1, expl:"2×5＋1＝11。"},
-    {q:"Σ_{k=1}^{5} k の値は？",         cs:["10","15","20","25"],                 ans:1, lv:2, expl:"1＋2＋3＋4＋5＝15。"},
+    {q:"a[n]＝2n＋1 の第5項は？",           cs:["9","10","11","12"],                  ans:2, lv:1, expl:"2×5＋1＝11。"},
+    {q:"Σ(k=1〜5) k の値は？",         cs:["10","15","20","25"],                 ans:1, lv:2, expl:"1＋2＋3＋4＋5＝15。"},
     {q:"二項分布 B(n,p) の平均は？",      cs:["p","n＋p","np","n/p"],               ans:2, lv:3, expl:"二項分布の平均は np。"},
     {q:"標準正規分布の平均は？",           cs:["−1","0","1","10"],                   ans:1, lv:2, expl:"N(0,1) の平均は 0。"},
-    {q:"a₁＝2，aₙ₊₁＝aₙ＋3 の第4項は？", cs:["8","9","10","11"],                   ans:3, lv:2, expl:"2→5→8→11。第4項は11。"},
+    {q:"a[1]＝2，a[n]₊₁＝a[n]＋3 の第4項は？", cs:["8","9","10","11"],                   ans:3, lv:2, expl:"2→5→8→11。第4項は11。"},
     {q:"標準化の式は？",                  cs:["x＋平均/標準偏差","(x−平均)/標準偏差","平均/x","標準偏差/x"], ans:1, lv:3, expl:"z＝(x−μ)/σ。平均を引いて標準偏差で割る。"},
-    {q:"Σ_{k=1}^{4} k² の値は？",       cs:["16","20","25","30"],                 ans:3, lv:3, expl:"1＋4＋9＋16＝30。"},
+    {q:"Σ(k=1〜4) k² の値は？",       cs:["16","20","25","30"],                 ans:3, lv:3, expl:"1＋4＋9＋16＝30。"},
   ],
   "数学C": [
-    {q:"a⃗＝(2,3)，b⃗＝(1,−1) の a⃗＋b⃗ は？", cs:["(3,2)","(1,4)","(2,−3)","(3,−2)"], ans:0, lv:2, expl:"成分ごとに加算。(2＋1, 3＋(−1))＝(3,2)。"},
-    {q:"a⃗＝(2,1)，b⃗＝(3,4) の内積は？",     cs:["7","10","11","14"],              ans:1, lv:2, expl:"2×3＋1×4＝6＋4＝10。"},
-    {q:"A(1,2)，B(4,6) の距離は？",           cs:["3","4","5","7"],                ans:2, lv:2, expl:"√(3²＋4²)＝√25＝5。"},
-    {q:"z＝3＋4i の絶対値は？",               cs:["3","4","5","7"],                ans:2, lv:2, expl:"√(3²＋4²)＝5。"},
+    {q:"ベクトルa＝(2,3)，ベクトルb＝(1,−1) の ベクトルa＋ベクトルb は？", cs:["(3,2)","(1,4)","(2,−3)","(3,−2)"], ans:0, lv:2, expl:"成分ごとに加算。(2＋1, 3＋(−1))＝(3,2)。"},
+    {q:"ベクトルa＝(2,1)，ベクトルb＝(3,4) の内積は？",     cs:["7","10","11","14"],              ans:1, lv:2, expl:"2×3＋1×4＝6＋4＝10。"},
+    {q:"A(1,2)，B(4,6) の距離は？",           cs:["3","4","5","7"],                ans:2, lv:2, expl:"√(3^2＋4^2)＝√25＝5。"},
+    {q:"z＝3＋4i の絶対値は？",               cs:["3","4","5","7"],                ans:2, lv:2, expl:"√(3^2＋4^2)＝5。"},
     {q:"(1＋i)(1−i) の値は？",              cs:["0","1","2","2i"],               ans:2, lv:2, expl:"1−i²＝1−(−1)＝2。"},
     {q:"点(2,3)を x 軸に関して対称移動すると？", cs:["(−2,3)","(2,−3)","(−2,−3)","(3,2)"], ans:1, lv:2, expl:"x座標はそのまま，y座標の符号を反転。(2,−3)。"},
     {q:"A(0,0)，B(6,8) の中点は？",         cs:["(2,4)","(3,4)","(4,3)","(6,8)"], ans:1, lv:1, expl:"座標の平均。((0＋6)/2, (0＋8)/2)＝(3,4)。"},
     {q:"z＝2−3i の共役複素数は？",           cs:["−2＋3i","2＋3i","−2−3i","3−2i"], ans:1, lv:2, expl:"虚部の符号を変える。2＋3i。"},
-    {q:"a⃗＝(1,0)，b⃗＝(0,1) のなす角は？",  cs:["0°","45°","90°","180°"],        ans:2, lv:2, expl:"内積＝0 なので直交。90°。"},
-    {q:"a⃗＝(1,2)，b⃗＝(2,4) の関係は？",   cs:["平行","垂直","同じ長さ","無関係"], ans:0, lv:2, expl:"b⃗＝2a⃗ なので平行。"},
+    {q:"ベクトルa＝(1,0)，ベクトルb＝(0,1) のなす角は？",  cs:["0°","45°","90°","180°"],        ans:2, lv:2, expl:"内積＝0 なので直交。90°。"},
+    {q:"ベクトルa＝(1,2)，ベクトルb＝(2,4) の関係は？",   cs:["平行","垂直","同じ長さ","無関係"], ans:0, lv:2, expl:"ベクトルb＝2ベクトルa なので平行。"},
   ],
   "情報Ⅰ": [
-    {q:"2進数 1010₂ を10進数にすると？",    cs:["8","9","10","11"],                  ans:2, lv:1, expl:"8＋0＋2＋0＝10。"},
+    {q:"2進数 1010(2) を10進数にすると？",    cs:["8","9","10","11"],                  ans:2, lv:1, expl:"8＋0＋2＋0＝10。"},
     {q:"1バイトは何ビット？",               cs:["2ビット","4ビット","8ビット","16ビット"], ans:2, lv:1, expl:"1バイト＝8ビット。基本単位。"},
     {q:"1 AND 0 の結果は？",               cs:["0","1","10","エラー"],              ans:0, lv:1, expl:"ANDは両方1のときだけ1。0。"},
     {q:"1 OR 0 の結果は？",               cs:["0","1","10","エラー"],              ans:1, lv:1, expl:"ORは少なくとも一方が1なら1。"},
@@ -924,18 +1009,6 @@ const TAKE = 10;
 const LEVEL_TIME = { 1: 20, 2: 25, 3: 30, 4: 40 };
 const LEVEL_NAME = { 1: 'やさしい', 2: '標準', 3: '発展', 4: '挑戦' };
 const LEVEL_COLORS = { 1: '#00e676', 2: '#ffc107', 3: '#ff9100', 4: '#ff3d6e' };
-const SUBJECT_ORDER = ['中学数学','情報Ⅰ','数学Ⅰ','数学Ⅱ','数学Ⅲ','数学A','数学B','数学C'];
-const SUBJECT_DISPLAY = {
-  '中学数学':'中学数学',
-  '情報Ⅰ':'情報Ⅰ',
-  '数学Ⅰ':'高校数学Ⅰ',
-  '数学Ⅱ':'高校数学Ⅱ',
-  '数学Ⅲ':'高校数学Ⅲ',
-  '数学A':'高校数学A',
-  '数学B':'高校数学B',
-  '数学C':'高校数学C'
-};
-function subjectLabel(s){ return SUBJECT_DISPLAY[s] || s; }
 
 /* =============================================
    STATE
@@ -953,7 +1026,6 @@ let timeLeft = 0;
 let soundEnabled = true;
 let audioCtx = null;
 let streak = 0;
-let maxStreak = 0;
 let autoNextId = null;
 let autoCountdownId = null;
 
@@ -971,6 +1043,18 @@ function esc(s) {
     .replace(/'/g,'&#39;');
 }
 
+
+function renderMath(s) {
+  let t = esc(s);
+  t = t.replace(/−/g, '−');
+  t = t.replace(/\^\{([^}]+)\}/g, '<sup>$1</sup>');
+  t = t.replace(/\^\(([^)]+)\)/g, '<sup>$1</sup>');
+  t = t.replace(/\^(-?\d+|[a-zA-Z])/g, '<sup>$1</sup>');
+  t = t.replace(/_\{([^}]+)\}/g, '<sub>$1</sub>');
+  t = t.replace(/_([0-9A-Za-z]+)/g, '<sub>$1</sub>');
+  return '<span class="math-display">' + t + '</span>';
+}
+
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -985,8 +1069,6 @@ function shuffle(arr) {
 ============================================= */
 function show(id) {
   clearTimer();
-  clearAutoNext();
-  $('perfectOverlay').classList.remove('show');
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   $(id).classList.add('active');
   $('timer').classList.toggle('show', id === 'screen-quiz');
@@ -1007,50 +1089,73 @@ function getAudioCtx() {
 
 function beep(kind) {
   if (!soundEnabled) return;
+
   try {
     const ctx = getAudioCtx();
     if (!ctx) return;
+
     const now = ctx.currentTime;
 
     if (kind === 'ok') {
-      // 正解: 上昇アルペジオ
-      [523, 659, 784, 1047].forEach((freq, k) => {
+      // 正解音：キラキラ系
+      [784, 1047, 1319, 1568].forEach((freq, k) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        osc.type = 'triangle';
+        const t = now + k * 0.06;
+
+        osc.type = 'sine';
         osc.frequency.value = freq;
-        gain.gain.setValueAtTime(0.0001, now + k * .07);
-        gain.gain.exponentialRampToValueAtTime(.38, now + k * .07 + .015);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + k * .07 + .22);
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.start(now + k * .07); osc.stop(now + k * .07 + .25);
+
+        gain.gain.setValueAtTime(0.0001, t);
+        gain.gain.exponentialRampToValueAtTime(0.35, t + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.30);
       });
+
     } else if (kind === 'ng') {
-      // 不正解: 下降和音
-      [220, 180, 140].forEach((freq, k) => {
+      // 不正解音：低めのレトロゲーム風
+      [330, 247, 196, 131].forEach((freq, k) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(freq, now + k * .06);
-        gain.gain.setValueAtTime(0.0001, now + k * .06);
-        gain.gain.exponentialRampToValueAtTime(.28, now + k * .06 + .012);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + k * .06 + .18);
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.start(now + k * .06); osc.stop(now + k * .06 + .22);
+        const t = now + k * 0.08;
+
+        osc.type = 'square';
+        osc.frequency.value = freq;
+
+        gain.gain.setValueAtTime(0.0001, t);
+        gain.gain.exponentialRampToValueAtTime(0.25, t + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.25);
       });
+
     } else if (kind === 'tick') {
-      // タイマー警告
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
+
       osc.type = 'sine';
-      osc.frequency.value = 880;
+      osc.frequency.value = 1047;
+
       gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.exponentialRampToValueAtTime(.13, now + .008);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + .08);
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.start(now); osc.stop(now + .1);
+      gain.gain.exponentialRampToValueAtTime(0.10, now + 0.008);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.10);
     }
-  } catch (e) { /* silent fail */ }
+
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 /* =============================================
@@ -1070,7 +1175,7 @@ function flash(type) {
 function confetti() {
   const marks = ['●', '★', '✦', '◆', '✓'];
   const colors = ['#00e676', '#ffc107', '#00e5c8', '#9c6fff', '#fff'];
-  for (let i = 0; i < 28; i++) {
+  for (let i = 0; i < 36; i++) {
     const el = document.createElement('div');
     el.className = 'confetti-piece';
     el.textContent = marks[i % marks.length];
@@ -1090,11 +1195,13 @@ function startTimer(sec) {
   timeLeft = sec;
   updateTimerDisplay();
   $('timer').classList.remove('urgent');
+  if ($('centerTimer')) $('centerTimer').classList.remove('urgent');
   timerId = setInterval(() => {
     timeLeft--;
     updateTimerDisplay();
     if (timeLeft <= 5) {
       $('timer').classList.add('urgent');
+      if ($('centerTimer')) $('centerTimer').classList.add('urgent');
       beep('tick');
     }
     if (timeLeft <= 0) timeUp();
@@ -1103,18 +1210,16 @@ function startTimer(sec) {
 
 function updateTimerDisplay() {
   $('timeNum').textContent = timeLeft;
-  const ct = $('centerTimer');
-  if (ct) {
-    ct.textContent = `残り ${timeLeft} 秒`;
-    ct.classList.toggle('urgent', timeLeft <= 5);
-  }
+  if ($('centerTimer')) $('centerTimer').textContent = `残り ${timeLeft} 秒`;
 }
 
 function clearTimer() {
   if (timerId) { clearInterval(timerId); timerId = null; }
   $('timer').classList.remove('urgent');
   if ($('centerTimer')) $('centerTimer').classList.remove('urgent');
+  if ($('centerTimer')) $('centerTimer').textContent = '残り -- 秒';
 }
+
 
 /* =============================================
    QUIZ FLOW
@@ -1133,8 +1238,8 @@ function startQuiz(subj, mistakeList = null) {
   playerName = $('nameInput').value.trim() || '名無し';
   questions = buildQuestions(subj, mistakeList);
   if (questions.length === 0) questions = buildQuestions(subj);
-  index = 0; score = 0; answered = false; history = []; streak = 0; maxStreak = 0;
-  $('subjectPill').textContent = subjectLabel(subj);
+  index = 0; score = 0; answered = false; history = []; streak = 0; clearAutoNext();
+  $('subjectPill').textContent = subj;
   updateScoreUI();
   show('screen-quiz');
   renderQuestion();
@@ -1146,17 +1251,18 @@ function updateScoreUI() {
 }
 
 function renderQuestion() {
+  clearAutoNext();
   answered = false;
   const q = questions[index];
   const lv = q.lv || 2;
 
-  $('qNo').textContent = `${subjectLabel(currentSubject)}　Q${index + 1} / ${TAKE}`;
+  $('qNo').textContent = `${currentSubject}　Q${index + 1} / ${TAKE}`;
   $('levelLabel').textContent = `Lv.${lv} ${LEVEL_NAME[lv]}`;
   $('levelLabel').style.color = LEVEL_COLORS[lv];
   $('levelLabel').style.borderColor = LEVEL_COLORS[lv] + '60';
   $('levelLabel').style.background = LEVEL_COLORS[lv] + '14';
 
-  $('qText').textContent = q.q;
+  $('qText').innerHTML = renderMath(q.q);
 
   // フィードバックリセット
   $('feedbackIdle').style.display = '';
@@ -1165,13 +1271,12 @@ function renderQuestion() {
   $('streakMsg').classList.remove('show');
   $('streakMsg').textContent = '';
   $('autoNextMsg').textContent = '';
-  $('nextBtn').textContent = '次の問題へ →';
 
   // 選択肢
   $('choices').innerHTML = q.cs.map((c, i) => `
     <button class="btn-choice" data-i="${i}">
       <span class="choice-label">${String.fromCharCode(65 + i)}</span>
-      <span>${esc(c)}</span>
+      <span>${renderMath(c)}</span>
     </button>
   `).join('');
 
@@ -1191,7 +1296,7 @@ function answer(i, timedOut = false) {
   const q = questions[index];
   const ok = !timedOut && i === q.ans;
 
-  if (ok) { score++; streak++; maxStreak = Math.max(maxStreak, streak); } else { streak = 0; }
+  if (ok) { score++; streak++; } else { streak = 0; }
   beep(ok ? 'ok' : 'ng');
   flash(timedOut ? 'time' : ok ? 'ok' : 'ng');
   if (ok) confetti();
@@ -1222,17 +1327,17 @@ function answer(i, timedOut = false) {
     vEl.textContent = '惜しい！'; vEl.className = 'verdict ng';
   }
 
-  $('ansRow').innerHTML = `<strong>正解：</strong>${esc(q.cs[q.ans])}`;
-  $('explBox').textContent = q.expl;
+  $('ansRow').innerHTML = `<strong>正解：</strong>${renderMath(q.cs[q.ans])}`;
+  $('explBox').innerHTML = renderMath(q.expl);
 
+  updateScoreUI();
   if (ok && streak >= 3) {
-    $('streakMsg').textContent = `🔥 ${streak}連続正解！`;
+    $('streakMsg').textContent = streak >= 5 ? `⚡ ${streak} COMBO !!` : `🔥 ${streak} COMBO !`;
     $('streakMsg').classList.add('show');
   }
 
-  updateScoreUI();
-  startAutoNext();
   $('nextBtn').classList.add('show');
+  startAutoNext();
 
   // キーボード対応 (iPad + 物理キーボード)
   $('nextBtn').focus();
@@ -1248,11 +1353,10 @@ function clearAutoNext() {
 function startAutoNext() {
   clearAutoNext();
   let n = 3;
-  $('nextBtn').textContent = index >= questions.length - 1 ? `結果へ（${n}）` : `次の問題へ（${n}）`;
-  $('autoNextMsg').textContent = '自動で進みます。すぐ進む場合はボタンをタップ。';
+  $('autoNextMsg').textContent = `自動で進みます：${n}`;
   autoCountdownId = setInterval(() => {
     n--;
-    if (n > 0) $('nextBtn').textContent = index >= questions.length - 1 ? `結果へ（${n}）` : `次の問題へ（${n}）`;
+    if (n > 0) $('autoNextMsg').textContent = `自動で進みます：${n}`;
   }, 1000);
   autoNextId = setTimeout(() => nextQuestion(), 3000);
 }
@@ -1278,30 +1382,31 @@ function showResult() {
   $('finalScore').textContent = `${score} / ${TAKE}`;
 
   const ranks = [
-    [100, 'Sランク 🏆 PERFECT!'],
+    [100, 'Sランク 🏆 PERFECT'],
     [80,  'Aランク ⭐ すばらしい'],
-    [60,  'Bランク 👍 いい調子'],
-    [40,  'Cランク 📖 復習しよう'],
+    [60,  'Bランク 👍 よくできました'],
+    [40,  'Cランク 📖 もう少し'],
     [0,   'Dランク 🔁 再挑戦'],
   ];
   $('rankText').textContent = ranks.find(([t]) => rate >= t)[1];
 
   $('finalMsg').textContent =
-    `${playerName}さんの正答率は ${rate}% です。最高連続正解は ${maxStreak} 問です。` +
+    `${playerName}さんの正答率は ${rate}% です。` +
     (lastMistakes.length ? `間違えた問題は ${lastMistakes.length} 問です。` : '全問正解です！🎉');
-  if (score === TAKE) {
-    $('perfectOverlay').classList.add('show');
-    for (let i = 0; i < 3; i++) setTimeout(confetti, i * 350);
-  }
 
   $('mistakeBtn').style.display = lastMistakes.length ? '' : 'none';
+  if (score === TAKE) {
+    $('perfectOverlay').classList.add('show');
+    confetti(); confetti();
+    setTimeout(() => $('perfectOverlay').classList.remove('show'), 1900);
+  }
 
   $('historyList').innerHTML = history.map((h, n) => `
     <div class="hist-row">
       <div>
-        <div class="q-text">Q${n + 1}　${esc(h.q)}</div>
+        <div class="q-text">Q${n + 1}　${renderMath(h.q)}</div>
         <div class="your-ans" style="color:${h.ok ? 'var(--ok)' : 'var(--ng)'}">
-          あなた：${esc(h.your)}　／　正解：${esc(h.ans)}
+          あなた：${renderMath(h.your)}　／　正解：${renderMath(h.ans)}
         </div>
       </div>
       <div class="hist-mark" style="color:${h.ok ? 'var(--ok)' : 'var(--ng)'}">${h.ok ? '○' : '×'}</div>
@@ -1314,14 +1419,14 @@ function showResult() {
 ============================================= */
 function init() {
   // タグ一覧
-  $('tagList').innerHTML = SUBJECT_ORDER
-    .map(s => `<span class="tag">${esc(subjectLabel(s))}</span>`).join('');
+  $('tagList').innerHTML = Object.keys(SUBJECTS)
+    .map(s => `<span class="tag">${esc(s)}</span>`).join('');
 
   // 分野ボタン
-  $('subjectGrid').innerHTML = SUBJECT_ORDER
+  $('subjectGrid').innerHTML = Object.keys(SUBJECTS)
     .map(s => `
       <button class="btn-subject" data-subject="${esc(s)}">
-        <strong>${esc(subjectLabel(s))}</strong>
+        <strong>${esc(s)}</strong>
         <span>難易度別タイマー 10問</span>
       </button>
     `).join('');
