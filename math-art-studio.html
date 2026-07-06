@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>数学アート工房</title>
+<style>
+  :root{
+    --bg:#0B0E14;
+    --panel:#12161F;
+    --panel2:#1A2030;
+    --line:#262E40;
+    --ink:#EDF1F7;
+    --sub:#7C8AA3;
+    --accent:#FF7A45;
+    --accent2:#3DDCE8;
+    --accent3:#C792EA;
+    --accent4:#7CE38B;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --jp:"Hiragino Maru Gothic ProN","Hiragino Sans","Hiragino Kaku Gothic ProN",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;}
+  body{
+    font-family:var(--jp);color:var(--ink);
+    background:
+      radial-gradient(circle at 10% -10%, #1B2333 0%, transparent 50%),
+      radial-gradient(circle at 100% 100%, #1A1626 0%, transparent 55%),
+      var(--bg);
+    -webkit-user-select:none;user-select:none;overflow:hidden;
+  }
+  .app{display:flex;height:100vh;height:100dvh;padding:14px;gap:14px;}
+  .stage{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:10px;}
+  .titlebar{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:2px 4px 0;}
+  .titlebar h1{font-size:22px;margin:0;font-weight:800;letter-spacing:.01em;}
+  .titlebar .tag{font-size:12px;color:var(--sub);background:var(--panel);border:1px solid var(--line);
+    padding:3px 9px;border-radius:999px;}
+  .tabs{display:flex;gap:8px;}
+  .tabs button{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:11px 6px;font-family:var(--jp);font-size:13px;font-weight:700;color:var(--sub);cursor:pointer;}
+  .tabs button.on{background:var(--ink);color:#0B0E14;border-color:var(--ink);}
+  .canvaswrap{flex:1 1 auto;background:#06070B;border:1px solid var(--line);border-radius:22px;
+    overflow:hidden;position:relative;box-shadow:0 10px 40px rgba(0,0,0,.45);}
+  canvas{display:block;width:100%;height:100%;touch-action:none;}
+  .badge{position:absolute;top:16px;left:16px;background:rgba(10,12,18,.55);backdrop-filter:blur(6px);
+    border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-family:var(--mono);
+    font-size:12px;color:var(--sub);line-height:1.5;}
+  .badge b{color:var(--ink);font-weight:600;}
+  .toast{position:absolute;left:50%;top:16px;transform:translateX(-50%) translateY(-12px);
+    background:#fff;color:#111;padding:9px 18px;border-radius:999px;font-size:14px;font-weight:700;
+    opacity:0;transition:.25s;pointer-events:none;white-space:nowrap;z-index:5;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  .panel{flex:0 0 360px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;}
+  .lead{font-size:13px;line-height:1.65;color:var(--sub);margin:0;}
+  .lead b{color:var(--ink);}
+  .formula{font-family:var(--mono);font-size:14px;background:var(--panel2);border:1px solid var(--line);
+    border-radius:10px;padding:10px 12px;margin-top:10px;color:var(--accent2);text-align:center;letter-spacing:.02em;}
+  .ctrl{margin-top:14px;}
+  .ctrl:first-of-type{margin-top:14px;}
+  .ctrl .lab{display:flex;justify-content:space-between;font-size:12.5px;color:var(--sub);font-weight:700;margin-bottom:6px;}
+  .ctrl .lab span.v{font-family:var(--mono);color:var(--ink);}
+  input[type=range]{
+    -webkit-appearance:none;width:100%;height:34px;background:transparent;margin:0;
+  }
+  input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);}
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:var(--ink);
+    border:3px solid var(--bg);margin-top:-12px;box-shadow:0 2px 8px rgba(0,0,0,.4);
+  }
+  .colorrow{display:flex;gap:8px;margin-top:12px;}
+  .colorrow button{flex:1;height:38px;border-radius:10px;border:2px solid transparent;cursor:pointer;}
+  .colorrow button.on{border-color:#fff;}
+  .actions{display:flex;flex-direction:column;gap:8px;}
+  .row{display:flex;gap:8px;}
+  .btn{border:none;border-radius:14px;padding:13px;font-family:var(--jp);font-size:14.5px;font-weight:800;cursor:pointer;flex:1;}
+  .btn:active{transform:scale(.97);}
+  .btn-primary{background:var(--accent);color:#1A0E08;}
+  .btn-ghost{background:var(--panel2);border:1px solid var(--line);color:var(--ink);}
+  .explain h3{font-size:14px;margin:0 0 6px;}
+  .explain p{font-size:12.5px;line-height:1.65;color:var(--sub);margin:0 0 8px;}
+  .pill{display:inline-block;background:rgba(255,122,69,.12);color:var(--accent);font-size:11px;
+    font-weight:700;border-radius:999px;padding:3px 9px;margin:2px 4px 2px 0;}
+  .switch-row{display:flex;align-items:center;justify-content:space-between;margin-top:12px;}
+  .switch-row .lab2{font-size:12.5px;color:var(--sub);font-weight:700;}
+  .toggle{width:46px;height:26px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);
+    position:relative;cursor:pointer;}
+  .toggle .knob{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:var(--sub);transition:.15s;}
+  .toggle.on{background:rgba(255,122,69,.25);border-color:var(--accent);}
+  .toggle.on .knob{left:22px;background:var(--accent);}
+
+  @media (max-width:820px),(orientation:portrait){
+    .app{flex-direction:column;}
+    .panel{flex:0 0 auto;flex-direction:row;flex-wrap:wrap;overflow:visible;}
+    .panel .card{flex:1 1 240px;}
+    .stage{min-height:48vh;}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="stage">
+    <div class="titlebar">
+      <h1>数学アート工房</h1>
+      <span class="tag">スライダーで描く数式の世界</span>
+    </div>
+    <div class="tabs" id="tabs">
+      <button data-mode="lissajous" class="on">リサージュ曲線</button>
+      <button data-mode="rose">バラ曲線</button>
+      <button data-mode="spiro">スピログラフ</button>
+      <button data-mode="fractal">フラクタル</button>
+    </div>
+    <div class="canvaswrap">
+      <div class="toast" id="toast"></div>
+      <div class="badge" id="badge"></div>
+      <canvas id="cv"></canvas>
+    </div>
+  </div>
+
+  <div class="panel" id="panel">
+    <!-- dynamically filled -->
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const cv=document.getElementById("cv");
+const ctx=cv.getContext("2d");
+const reduce=window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+let DPR=Math.min(2,window.devicePixelRatio||1);
+
+function resize(){
+  const r=cv.getBoundingClientRect();
+  cv.width=Math.round(r.width*DPR);
+  cv.height=Math.round(r.height*DPR);
+}
+window.addEventListener("resize",resize);
+
+const PALETTE=[
+  {name:"サンセット",cols:["#FF7A45","#FFC23D","#FF4D8D"]},
+  {name:"オーシャン",cols:["#3DDCE8","#3D7BFF","#7CE38B"]},
+  {name:"ネオン",cols:["#C792EA","#FF4D8D","#3DDCE8"]},
+  {name:"モノ",cols:["#EDF1F7","#7C8AA3","#FFFFFF"]},
+];
+
+let mode="lissajous";
+let t=0, raf=null;
+let params={};
+let colorIdx=0;
+let rainbow=true;
+
+// ---------------- per-mode configs ----------------
+const CONFIGS={
+  lissajous:{
+    formula:"x = sin(a·t+δ),  y = sin(b·t)",
+    desc:"2つの方向の単振動を組み合わせると、aとbの比によって決まる優美な曲線が生まれます。a:b が単純な整数比だと曲線は閉じます。オシロスコープで音の波形を重ねて見る時にも現れる図形です。",
+    pills:["三角関数","周期","比とリズム"],
+    controls:[
+      {key:"a",label:"a（横の振動数）",min:1,max:12,step:1,def:3},
+      {key:"b",label:"b（縦の振動数）",min:1,max:12,step:1,def:2},
+      {key:"delta",label:"δ 位相差",min:0,max:6.283,step:0.01,def:Math.PI/2},
+      {key:"speed",label:"描く速さ",min:0.2,max:3,step:0.1,def:1},
+    ],
+  },
+  rose:{
+    formula:"r = cos(k·θ)",
+    desc:"原点からの距離 r が角度θの三角関数で決まる「極座標」の曲線です。k が奇数なら花びらはk枚、偶数なら2k枚になります。",
+    pills:["極座標","三角関数","対称性"],
+    controls:[
+      {key:"k",label:"k（花びらの基準）",min:1,max:14,step:0.5,def:5},
+      {key:"scale",label:"大きさ",min:0.4,max:1.3,step:0.01,def:1},
+      {key:"speed",label:"描く速さ",min:0.2,max:3,step:0.1,def:1},
+    ],
+  },
+  spiro:{
+    formula:"x=(R−r)cosθ + d·cos((R−r)/r·θ)",
+    desc:"大きな円(R)の中で小さな円(r)を転がし、その円の中の点(距離d)が描く軌跡です。歯車おもちゃ「スピログラフ」と同じしくみ。R,rの比が複雑なほど模様が緻密になります。",
+    pills:["パラメトリック曲線","回転","最小公倍数"],
+    controls:[
+      {key:"R",label:"外側の円 R",min:3,max:14,step:1,def:7},
+      {key:"r",label:"内側の円 r",min:1,max:13,step:1,def:2},
+      {key:"d",label:"点の位置 d",min:0.2,max:6,step:0.1,def:4},
+      {key:"speed",label:"描く速さ",min:0.2,max:3,step:0.1,def:1},
+    ],
+  },
+  fractal:{
+    formula:"図形 → 縮小コピー → くり返し",
+    desc:"同じ形をくり返し縮小して並べる「自己相似」な図形です。木の枝・雪の結晶・海岸線など、自然界にもよく現れます。くり返す回数（次数）を増やすほど細部が増えます。",
+    pills:["再帰","自己相似","図形の極限"],
+    controls:[
+      {key:"depth",label:"くり返す回数",min:0,max:6,step:1,def:4},
+      {key:"shape",label:"形（0:雪片 1:三角)",min:0,max:1,step:1,def:0,isShape:true},
+    ],
+  },
+};
+
+function defaultsFor(mode){
+  const p={}; CONFIGS[mode].controls.forEach(c=>p[c.key]=c.def); return p;
+}
+params=defaultsFor(mode);
+
+// ---------------- panel UI build ----------------
+function buildPanel(){
+  const cfg=CONFIGS[mode];
+  const panel=document.getElementById("panel");
+  panel.innerHTML="";
+
+  const card1=document.createElement("div");
+  card1.className="card";
+  card1.innerHTML=`<p class="lead">スライダーを動かして、図形がどう変わるか試してみよう。<b>数式ひとつ</b>で、こんなに違う模様が生まれます。</p>
+    <div class="formula">${cfg.formula}</div>`;
+  panel.appendChild(card1);
+
+  const card2=document.createElement("div");
+  card2.className="card";
+  cfg.controls.forEach(c=>{
+    const wrap=document.createElement("div");
+    wrap.className="ctrl";
+    const isShapeToggle = c.isShape;
+    if(isShapeToggle){
+      wrap.innerHTML=`<div class="switch-row">
+        <div class="lab2">三角フラクタルにする</div>
+        <div class="toggle" id="ctrl-${c.key}"><div class="knob"></div></div>
+      </div>`;
+      card2.appendChild(wrap);
+      const tg=wrap.querySelector(`#ctrl-${c.key}`);
+      function syncToggle(){ tg.classList.toggle("on", params[c.key]===1); }
+      syncToggle();
+      tg.addEventListener("click",()=>{ params[c.key]=params[c.key]===1?0:1; syncToggle(); restart(); });
+      return;
+    }
+    wrap.innerHTML=`<div class="lab"><span>${c.label}</span><span class="v" id="val-${c.key}">${fmt(c,c.def)}</span></div>
+      <input type="range" id="ctrl-${c.key}" min="${c.min}" max="${c.max}" step="${c.step}" value="${c.def}">`;
+    card2.appendChild(wrap);
+    const input=wrap.querySelector("input");
+    input.addEventListener("input",()=>{
+      const v=parseFloat(input.value);
+      params[c.key]=v;
+      document.getElementById(`val-${c.key}`).textContent=fmt(c,v);
+      if(mode==="fractal") restart(); // fractal redraws fully each change
+    });
+  });
+  panel.appendChild(card2);
+
+  const card3=document.createElement("div");
+  card3.className="card";
+  card3.innerHTML=`<div class="lead" style="margin-bottom:8px;font-weight:700;color:var(--ink);">色のテーマ</div>
+    <div class="colorrow" id="colorrow"></div>
+    <div class="switch-row">
+      <div class="lab2">描くたびに色が変わる</div>
+      <div class="toggle on" id="rainbowToggle"><div class="knob"></div></div>
+    </div>`;
+  panel.appendChild(card3);
+  const crow=card3.querySelector("#colorrow");
+  PALETTE.forEach((p,i)=>{
+    const b=document.createElement("button");
+    b.style.background=`linear-gradient(135deg, ${p.cols[0]}, ${p.cols[1]})`;
+    if(i===colorIdx) b.classList.add("on");
+    b.addEventListener("click",()=>{
+      colorIdx=i;
+      [...crow.children].forEach(x=>x.classList.remove("on"));
+      b.classList.add("on");
+    });
+    crow.appendChild(b);
+  });
+  const rtoggle=card3.querySelector("#rainbowToggle");
+  rtoggle.classList.toggle("on",rainbow);
+  rtoggle.addEventListener("click",()=>{ rainbow=!rainbow; rtoggle.classList.toggle("on",rainbow); });
+
+  const card4=document.createElement("div");
+  card4.className="card actions";
+  card4.innerHTML=`<div class="row">
+      <button class="btn btn-ghost" id="resetBtn">リセット</button>
+      <button class="btn btn-ghost" id="randomBtn">ランダム</button>
+    </div>
+    <button class="btn btn-primary" id="saveBtn">画像として保存</button>`;
+  panel.appendChild(card4);
+  document.getElementById("resetBtn").addEventListener("click",()=>{ params=defaultsFor(mode); buildPanel(); restart(); });
+  document.getElementById("randomBtn").addEventListener("click",randomize);
+  document.getElementById("saveBtn").addEventListener("click",saveImage);
+
+  const card5=document.createElement("div");
+  card5.className="card explain";
+  card5.innerHTML=`<h3>これ、何の数学？</h3><p>${cfg.desc}</p>
+    ${cfg.pills.map(p=>`<span class="pill">${p}</span>`).join("")}`;
+  panel.appendChild(card5);
+
+  document.getElementById("badge").textContent=cfg.formula;
+}
+function fmt(c,v){
+  if(c.step>=1) return Math.round(v);
+  return Number(v).toFixed(2);
+}
+
+function randomize(){
+  const cfg=CONFIGS[mode];
+  cfg.controls.forEach(c=>{
+    if(c.isShape){ params[c.key]=Math.round(Math.random()); return; }
+    const span=c.max-c.min;
+    const steps=Math.round(span/c.step);
+    const v=c.min + c.step*Math.floor(Math.random()*(steps+1));
+    params[c.key]=v;
+  });
+  colorIdx=Math.floor(Math.random()*PALETTE.length);
+  buildPanel();
+  restart();
+  toast("ランダム生成！");
+}
+
+// ---------------- drawing: parametric curves ----------------
+function colorAt(progress){
+  const pal=PALETTE[colorIdx].cols;
+  if(rainbow){
+    const hue=(progress*360*2)%360;
+    return `hsl(${hue},85%,62%)`;
+  }
+  const idx=Math.floor(progress*pal.length)%pal.length;
+  return pal[idx];
+}
+
+function clearCanvas(){
+  ctx.save();
+  ctx.scale(DPR,DPR);
+  ctx.fillStyle="#06070B";
+  ctx.fillRect(0,0,cv.width/DPR,cv.height/DPR);
+  ctx.restore();
+}
+
+function center(){ return {cx:cv.width/DPR/2, cy:cv.height/DPR/2}; }
+function scaleUnit(){ return Math.min(cv.width/DPR,cv.height/DPR)*0.42; }
+
+function lissajousPoint(theta){
+  const {a,b,delta}=params;
+  return [Math.sin(a*theta+delta), Math.sin(b*theta)];
+}
+function rosePoint(theta){
+  const {k}=params;
+  const r=Math.cos(k*theta);
+  return [r*Math.cos(theta)*params.scale, r*Math.sin(theta)*params.scale];
+}
+function spiroPoint(theta){
+  const {R,r,d}=params;
+  const x=(R-r)*Math.cos(theta) + d*Math.cos((R-r)/r*theta);
+  const y=(R-r)*Math.sin(theta) - d*Math.sin((R-r)/r*theta);
+  const norm=Math.abs(R-r)+d; // theoretical max radius, works even if r > R
+  return [x/Math.max(1,norm), y/Math.max(1,norm)];
+}
+function gcd(a,b){return b===0?a:gcd(b,a%b);}
+function paramRange(){
+  if(mode==="lissajous") return 2*Math.PI;
+  if(mode==="rose"){
+    // r = cos(k*theta). Represent k as n/d (slider step 0.5 -> d is 1 or 2), reduce, then
+    // the curve closes at theta = pi*d if n*d is odd, otherwise 2*pi*d.
+    const k=params.k;
+    const d = (Math.round(k*2) % 2 === 0) ? 1 : 2;
+    let n = Math.round(k*d);
+    function gcd(a,b){return b===0?a:gcd(b,a%b);}
+    const g=gcd(n,d)||1;
+    n/=g; const dd=d/g;
+    return (n*dd)%2===1 ? Math.PI*dd : 2*Math.PI*dd;
+  }
+  if(mode==="spiro"){
+    const R=Math.round(params.R), r=Math.round(params.r);
+    const g=gcd(R,r)||1;
+    return 2*Math.PI*(r/g);
+  }
+  return 2*Math.PI;
+}
+
+function pointFor(theta){
+  if(mode==="lissajous") return lissajousPoint(theta);
+  if(mode==="rose") return rosePoint(theta);
+  if(mode==="spiro") return spiroPoint(theta);
+  return [0,0];
+}
+
+let drawnPoints=[];
+function animate(){
+  if(mode==="fractal") return; // fractal handled separately (static, full draw)
+  const range=paramRange();
+  const speed=params.speed||1;
+  const stepsPerFrame= reduce ? 999999 : Math.max(2, Math.round(3*speed));
+  const totalSteps=Math.max(600, Math.round(range/0.01));
+  ctx.save(); ctx.scale(DPR,DPR);
+  const {cx,cy}=center(); const S=scaleUnit();
+
+  for(let s=0;s<stepsPerFrame;s++){
+    if(t> totalSteps){ // loop: fade and restart trail naturally
+      t=0; drawnPoints=[];
+    }
+    const theta=(t/totalSteps)*range;
+    const [x,y]=pointFor(theta);
+    drawnPoints.push([cx+x*S, cy+y*S, t/totalSteps]);
+    t++;
+  }
+  if(drawnPoints.length>4000) drawnPoints=drawnPoints.slice(drawnPoints.length-4000);
+
+  // trail fade
+  ctx.fillStyle="rgba(6,7,11,0.10)";
+  ctx.fillRect(0,0,cv.width/DPR,cv.height/DPR);
+
+  ctx.lineWidth=2.4;
+  ctx.lineJoin="round"; ctx.lineCap="round";
+  for(let i=1;i<drawnPoints.length;i++){
+    const [x0,y0]=drawnPoints[i-1];
+    const [x1,y1,prog]=drawnPoints[i];
+    ctx.strokeStyle=colorAt(prog);
+    ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.stroke();
+  }
+  ctx.restore();
+  raf=requestAnimationFrame(animate);
+}
+
+// ---------------- fractal drawing (static recursive) ----------------
+function drawFractal(){
+  clearCanvas();
+  ctx.save(); ctx.scale(DPR,DPR);
+  const w=cv.width/DPR, h=cv.height/DPR;
+  const depth=Math.round(params.depth);
+  const shape=Math.round(params.shape);
+
+  if(shape===0){
+    // Koch snowflake
+    const size=Math.min(w,h)*0.62;
+    const cx=w/2, cy=h/2+size*0.12;
+    const h3=size*Math.sqrt(3)/2;
+    const p1=[cx-size/2, cy+h3/3];
+    const p2=[cx+size/2, cy+h3/3];
+    const p3=[cx, cy-2*h3/3];
+    ctx.lineWidth=2; ctx.lineJoin="round"; ctx.lineCap="round";
+    [[p1,p2],[p2,p3],[p3,p1]].forEach(([a,b],i)=>{
+      koch(a,b,depth,i);
+    });
+  } else {
+    // Sierpinski triangle (deterministic subdivision)
+    const size=Math.min(w,h)*0.78;
+    const cx=w/2, cy=h/2+size*0.18;
+    const h3=size*Math.sqrt(3)/2;
+    const p1=[cx-size/2, cy+h3/3];
+    const p2=[cx+size/2, cy+h3/3];
+    const p3=[cx, cy-2*h3/3];
+    sierpinski(p1,p2,p3,depth,0);
+  }
+  ctx.restore();
+}
+function koch(a,b,depth,colorSeed){
+  if(depth<=0){
+    ctx.strokeStyle=colorAt((colorSeed%6)/6);
+    ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke();
+    return;
+  }
+  const dx=(b[0]-a[0])/3, dy=(b[1]-a[1])/3;
+  const p1=a;
+  const p2=[a[0]+dx, a[1]+dy];
+  const p4=[a[0]+2*dx, a[1]+2*dy];
+  const p5=b;
+  const angle=Math.atan2(dy,dx)-Math.PI/3;
+  const len=Math.hypot(dx,dy);
+  const p3=[p2[0]+len*Math.cos(angle), p2[1]+len*Math.sin(angle)];
+  koch(p1,p2,depth-1,colorSeed);
+  koch(p2,p3,depth-1,colorSeed+1);
+  koch(p3,p4,depth-1,colorSeed+2);
+  koch(p4,p5,depth-1,colorSeed+3);
+}
+function sierpinski(p1,p2,p3,depth,seed){
+  if(depth<=0){
+    ctx.fillStyle=colorAt((seed%9)/9);
+    ctx.beginPath();
+    ctx.moveTo(p1[0],p1[1]); ctx.lineTo(p2[0],p2[1]); ctx.lineTo(p3[0],p3[1]);
+    ctx.closePath(); ctx.fill();
+    return;
+  }
+  const m12=[(p1[0]+p2[0])/2,(p1[1]+p2[1])/2];
+  const m23=[(p2[0]+p3[0])/2,(p2[1]+p3[1])/2];
+  const m31=[(p3[0]+p1[0])/2,(p3[1]+p1[1])/2];
+  sierpinski(p1,m12,m31,depth-1,seed+1);
+  sierpinski(m12,p2,m23,depth-1,seed+2);
+  sierpinski(m31,m23,p3,depth-1,seed+3);
+}
+
+// ---------------- lifecycle ----------------
+function restart(){
+  t=0; drawnPoints=[];
+  clearCanvas();
+  if(raf) cancelAnimationFrame(raf);
+  if(mode==="fractal"){ drawFractal(); }
+  else { raf=requestAnimationFrame(animate); }
+}
+
+function toast(msg){
+  const el=document.getElementById("toast");
+  el.textContent=msg; el.classList.add("show");
+  clearTimeout(toast._t); toast._t=setTimeout(()=>el.classList.remove("show"),1600);
+}
+
+function saveImage(){
+  try{
+    const link=document.createElement("a");
+    link.download="math-art.png";
+    link.href=cv.toDataURL("image/png");
+    link.click();
+    toast("画像を保存しました");
+  }catch(e){
+    toast("保存できませんでした");
+  }
+}
+
+document.getElementById("tabs").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-mode]"); if(!b) return;
+  [...e.currentTarget.children].forEach(x=>x.classList.remove("on"));
+  b.classList.add("on");
+  mode=b.dataset.mode;
+  params=defaultsFor(mode);
+  buildPanel();
+  restart();
+});
+
+// init
+window.addEventListener("orientationchange",()=>{ setTimeout(()=>{resize(); restart();},250); });
+resize();
+buildPanel();
+restart();
+})();
+</script>
+</body>
+</html>

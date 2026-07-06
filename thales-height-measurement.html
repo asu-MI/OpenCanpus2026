@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>相似で身長を測る ― タレスの定理</title>
+<style>
+  :root{
+    --bg:#10151D;
+    --panel:#161D27;
+    --panel2:#1E2733;
+    --line:#2A3540;
+    --ink:#EFF4F8;
+    --sub:#8C9AAA;
+    --sun:#FFC23D;
+    --stick:#5AC8FA;
+    --tower:#FF7A45;
+    --shadow:#3A4350;
+    --good:#3DDC97;
+    --bad:#FF5A6A;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --jp:"Hiragino Maru Gothic ProN","Hiragino Sans","Hiragino Kaku Gothic ProN",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;}
+  body{
+    font-family:var(--jp);color:var(--ink);
+    background:
+      radial-gradient(circle at 100% -10%, #2A2410 0%, transparent 50%),
+      radial-gradient(circle at 0% 110%, #16202C 0%, transparent 55%),
+      var(--bg);
+    -webkit-user-select:none;user-select:none;overflow:hidden;
+  }
+  .app{display:flex;height:100vh;height:100dvh;padding:14px;gap:14px;}
+  .stage{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:10px;}
+  .titlebar{display:flex;align-items:baseline;gap:12px;margin:2px 4px 0;}
+  .titlebar h1{font-size:22px;margin:0;font-weight:800;}
+  .titlebar .tag{font-size:12px;color:var(--sub);background:var(--panel);border:1px solid var(--line);padding:3px 9px;border-radius:999px;}
+  .scenewrap{flex:1 1 auto;background:linear-gradient(to bottom, #1A2230 0%, #161D27 60%, #161D27 100%);
+    border:1px solid var(--line);border-radius:22px;overflow:hidden;position:relative;box-shadow:0 10px 40px rgba(0,0,0,.35);}
+  svg{display:block;width:100%;height:100%;touch-action:none;}
+  .toast{position:absolute;left:50%;top:16px;transform:translateX(-50%) translateY(-12px);
+    background:#fff;color:#111;padding:9px 18px;border-radius:999px;font-size:14px;font-weight:700;
+    opacity:0;transition:.25s;pointer-events:none;white-space:nowrap;z-index:5;text-align:center;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .sunslider{position:absolute;top:14px;left:14px;right:14px;display:flex;align-items:center;gap:10px;
+    background:rgba(16,21,29,.55);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:14px;padding:8px 14px;}
+  .sunslider .ic{font-size:18px;}
+  .sunslider input{flex:1;-webkit-appearance:none;height:30px;background:transparent;}
+  .sunslider input::-webkit-slider-runnable-track{height:5px;border-radius:999px;background:var(--panel2);}
+  .sunslider input::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;
+    background:var(--sun);border:3px solid var(--bg);margin-top:-9px;box-shadow:0 2px 6px rgba(0,0,0,.4);}
+  .sunval{font-family:var(--mono);font-size:12px;color:var(--sub);min-width:42px;text-align:right;}
+
+  .panel{flex:0 0 360px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;}
+  .lead{font-size:13px;line-height:1.65;color:var(--sub);margin:0;}
+  .lead b{color:var(--ink);}
+  .measures{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .mc{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:11px;text-align:center;}
+  .mc .k{font-size:11px;color:var(--sub);font-weight:700;}
+  .mc .v{font-family:var(--mono);font-size:22px;font-weight:700;margin-top:3px;}
+  .mc.stick .v{color:var(--stick);}
+  .mc.tower .v{color:var(--tower);}
+  .ratio{margin-top:10px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;
+    padding:10px 12px;text-align:center;font-family:var(--mono);font-size:12.5px;color:var(--sub);}
+  .ratio b{color:var(--good);font-size:15px;}
+
+  .guess{margin-top:14px;}
+  .guess .lab2{font-size:12.5px;color:var(--sub);font-weight:700;margin-bottom:8px;}
+  .guessrow{display:flex;gap:8px;align-items:center;}
+  .guessrow input[type=text]{flex:1;font-family:var(--mono);font-size:18px;text-align:center;
+    background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px;color:var(--ink);}
+  .guessrow .unit{color:var(--sub);font-size:13px;}
+  .result{margin-top:10px;font-size:13px;text-align:center;padding:8px;border-radius:10px;display:none;}
+  .result.show{display:block;}
+  .result.good{background:rgba(61,220,151,.12);color:var(--good);}
+  .result.bad{background:rgba(255,90,106,.12);color:var(--bad);}
+
+  .actions{display:flex;flex-direction:column;gap:8px;}
+  .row{display:flex;gap:8px;}
+  .btn{border:none;border-radius:14px;padding:13px;font-family:var(--jp);font-size:14.5px;font-weight:800;cursor:pointer;flex:1;}
+  .btn:active{transform:scale(.97);}
+  .btn-primary{background:var(--tower);color:#1A0E08;}
+  .btn-ghost{background:var(--panel2);border:1px solid var(--line);color:var(--ink);}
+  .explain h3{font-size:14px;margin:0 0 6px;}
+  .explain p{font-size:12.5px;line-height:1.65;color:var(--sub);margin:0 0 8px;}
+  .pill{display:inline-block;background:rgba(255,122,69,.12);color:var(--tower);font-size:11px;
+    font-weight:700;border-radius:999px;padding:3px 9px;margin:2px 4px 2px 0;}
+
+  @media (max-width:820px),(orientation:portrait){
+    .app{flex-direction:column;}
+    .panel{flex:0 0 auto;flex-direction:row;flex-wrap:wrap;overflow:visible;}
+    .panel .card{flex:1 1 240px;}
+    .stage{min-height:48vh;}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="stage">
+    <div class="titlebar">
+      <h1>相似で身長を測る</h1>
+      <span class="tag">タレスの定理</span>
+    </div>
+    <div class="scenewrap">
+      <div class="toast" id="toast"></div>
+      <div class="sunslider">
+        <span class="ic">☀️</span>
+        <input type="range" id="sunSlider" min="12" max="78" step="1" value="40">
+        <span class="sunval" id="sunVal">40°</span>
+      </div>
+      <svg id="svg" viewBox="0 0 900 520"></svg>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="card">
+      <p class="lead">高さの分かっている<b>棒</b>と、高さの分からない<b>タワー</b>に、同じ太陽の光が当たっています。太陽の角度を変えて、影の伸び方を見てみよう。</p>
+      <div class="measures">
+        <div class="mc stick"><div class="k">棒の高さ</div><div class="v" id="stickH">1.5 m</div></div>
+        <div class="mc stick"><div class="k">棒の影</div><div class="v" id="stickS">—</div></div>
+        <div class="mc tower"><div class="k">タワーの影</div><div class="v" id="towerS">—</div></div>
+        <div class="mc tower"><div class="k">タワーの高さ</div><div class="v" id="towerH">？</div></div>
+      </div>
+      <div class="ratio">棒の高さ÷棒の影 ＝ <b id="ratioCheck">—</b><br>タワーの高さ÷タワーの影 ＝ <b id="ratioCheck2">—</b></div>
+    </div>
+
+    <div class="card">
+      <div class="guess">
+        <div class="lab2">影の長さだけから、タワーの高さを計算してみよう</div>
+        <div class="guessrow">
+          <input type="text" id="guessInput" inputmode="decimal" placeholder="例: 12.5">
+          <span class="unit">m</span>
+        </div>
+        <div class="result" id="resultBox"></div>
+      </div>
+      <div class="row" style="margin-top:12px;">
+        <button class="btn btn-primary" id="checkBtn">答え合わせ</button>
+      </div>
+    </div>
+
+    <div class="card actions">
+      <div class="row">
+        <button class="btn btn-ghost" id="newBtn">新しいタワーで挑戦</button>
+        <button class="btn btn-ghost" id="revealBtn">答えを見る</button>
+      </div>
+    </div>
+
+    <div class="card explain">
+      <h3>これ、何の数学？</h3>
+      <p>これは「<b>タレスの定理</b>」。古代ギリシャのタレスは、自分の影の長さとピラミッドの影の長さを比べることで、登らずにピラミッドの高さを測ったと言われています。</p>
+      <p>太陽の光はどこでも同じ角度で当たっているので、棒が作る三角形とタワーが作る三角形は<b>相似</b>（形が同じで大きさだけ違う）になります。だから、高さと影の<b>比</b>がいつも同じになるのです。</p>
+      <p style="opacity:.75;">※ 図は見やすさのため、棒とタワーを別の縮尺で描いています。本当の比は、表示されている<b>数値</b>で確認してください。</p>
+      <span class="pill">相似</span><span class="pill">比とその利用</span><span class="pill">中3 図形分野</span>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const SVG="http://www.w3.org/2000/svg";
+const svg=document.getElementById("svg");
+const VB_W=900, VB_H=520;
+const GROUND_Y=420;
+
+const STICK_X=200, STICK_REAL_H=1.5;     // meters
+const TOWER_X=620;
+let TOWER_REAL_H=14;                      // meters, randomized later
+
+// Layout budgets (px) so shadows/heights always fit inside the viewBox, for any angle (12-78°) and any tower height (8-40m)
+const STICK_AVAILABLE_W = TOWER_X - STICK_X - 60;   // horizontal room before the tower starts
+const STICK_AVAILABLE_H = GROUND_Y - 90;            // vertical room above ground
+const TOWER_AVAILABLE_W = VB_W - TOWER_X - 40;       // horizontal room to the right edge
+const TOWER_AVAILABLE_H = GROUND_Y - 70;             // vertical room above ground
+
+let sunAngleDeg=40;
+
+function mk(tag,attrs){const e=document.createElementNS(SVG,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);return e;}
+
+function shadowLengthMeters(heightMeters, angleDeg){
+  const t=Math.tan(angleDeg*Math.PI/180);
+  return heightMeters / t;
+}
+
+// Dynamic scale (px per meter) for one object, so both its shadow and its own height
+// always fit within the given pixel budgets, regardless of sun angle or object height.
+function dynamicScale(heightM, shadowM, availW, availH, maxScale){
+  const byWidth = shadowM>0 ? availW/shadowM : maxScale;
+  const byHeight = heightM>0 ? availH/heightM : maxScale;
+  return Math.max(0.5, Math.min(byWidth, byHeight, maxScale));
+}
+
+function randomTower(){
+  TOWER_REAL_H = Math.round((8 + Math.random()*32)*10)/10; // 8.0 - 40.0 m, 1 decimal
+}
+
+function render(){
+  svg.innerHTML="";
+
+  // ground
+  svg.appendChild(mk("line",{x1:0,y1:GROUND_Y,x2:VB_W,y2:GROUND_Y,stroke:"#3A4350","stroke-width":2}));
+  // ground texture dashes
+  for(let x=0;x<VB_W;x+=30){
+    svg.appendChild(mk("line",{x1:x,y1:GROUND_Y+10,x2:x+14,y2:GROUND_Y+10,stroke:"#2A333D","stroke-width":2}));
+  }
+
+  // sun
+  const sunX = 80 + (sunAngleDeg-12)/(78-12) * 200;
+  const sunY = 60 + (78-sunAngleDeg)/(78-12) * 60;
+  svg.appendChild(mk("circle",{cx:sunX,cy:sunY,r:22,fill:"var(--sun)",opacity:.9}));
+  for(let i=0;i<8;i++){
+    const a=i/8*2*Math.PI;
+    svg.appendChild(mk("line",{x1:sunX+Math.cos(a)*28,y1:sunY+Math.sin(a)*28,
+      x2:sunX+Math.cos(a)*38,y2:sunY+Math.sin(a)*38, stroke:"var(--sun)","stroke-width":2,opacity:.6}));
+  }
+
+  // shadows (computed in meters then scaled). Scale is recomputed every frame so that,
+  // for ANY sun angle (12-78°) and ANY tower height (8-40m), shadows always fit.
+  const stickShadowM=shadowLengthMeters(STICK_REAL_H, sunAngleDeg);
+  const towerShadowM=shadowLengthMeters(TOWER_REAL_H, sunAngleDeg);
+
+  // Stick: one scale fits both its own shadow and its own height.
+  const PX_PER_M_STICK=dynamicScale(STICK_REAL_H, stickShadowM, STICK_AVAILABLE_W, STICK_AVAILABLE_H, 60);
+  const stickShadowPx=stickShadowM*PX_PER_M_STICK;
+
+  // Tower: the SHADOW needs its own scale to fit the available width (shadows get very long
+  // at low sun angles). But if we used that same scale to draw the tower's own height, a tall
+  // tower could end up looking SHORTER than the stick on screen, which is misleading. So the
+  // tower's drawn height uses a separate scale: as true-to-the-stick as possible (height scaled
+  // by the real height ratio vs the stick), then capped so it still fits vertically.
+  const towerShadowScale=Math.max(0.1, Math.min(TOWER_AVAILABLE_W/Math.max(towerShadowM,0.001), 20));
+  const towerShadowPx=towerShadowM*towerShadowScale;
+
+  const heightRatio=TOWER_REAL_H/STICK_REAL_H; // always >1 in this app (tower is always taller)
+  const idealTowerHeightPx=(STICK_REAL_H*PX_PER_M_STICK)*heightRatio;
+  let towerHeightScale=Math.min(idealTowerHeightPx/TOWER_REAL_H, TOWER_AVAILABLE_H/TOWER_REAL_H);
+  towerHeightScale=Math.max(towerHeightScale, towerShadowScale); // never let the building look squatter than its own shadow scale
+  towerHeightScale=Math.min(towerHeightScale, TOWER_AVAILABLE_H/TOWER_REAL_H); // re-clip after the max() above
+  const PX_PER_M_TOWER=towerHeightScale;
+
+  // direction of shadow: away from sun horizontally (sun is upper-left-ish when angle small... let's always cast shadow to the right)
+  const dir=1;
+
+  // --- stick ---
+  const stickTopY=GROUND_Y - STICK_REAL_H*PX_PER_M_STICK;
+  svg.appendChild(mk("line",{x1:STICK_X,y1:GROUND_Y,x2:STICK_X+dir*stickShadowPx,y2:GROUND_Y,
+    stroke:"var(--shadow)","stroke-width":10,"stroke-linecap":"round",opacity:.85}));
+  svg.appendChild(mk("line",{x1:STICK_X,y1:GROUND_Y,x2:STICK_X,y2:stickTopY,stroke:"var(--stick)","stroke-width":6,"stroke-linecap":"round"}));
+  svg.appendChild(mk("circle",{cx:STICK_X,cy:stickTopY,r:7,fill:"var(--stick)"}));
+  // sun ray to shadow tip
+  svg.appendChild(mk("line",{x1:STICK_X,y1:stickTopY,x2:STICK_X+dir*stickShadowPx,y2:GROUND_Y,
+    stroke:"var(--sun)","stroke-width":1.5,"stroke-dasharray":"4 4",opacity:.5}));
+  const stickLabel=mk("text",{x:STICK_X,y:stickTopY-16,"text-anchor":"middle","font-size":14,
+    "font-family":"var(--jp)",fill:"var(--stick)","font-weight":700});
+  stickLabel.textContent=`棒 ${STICK_REAL_H}m`;
+  svg.appendChild(stickLabel);
+
+  // --- tower (drawn as a simple building) ---
+  const towerTopY=GROUND_Y - TOWER_REAL_H*PX_PER_M_TOWER;
+  const towerW=34;
+  svg.appendChild(mk("line",{x1:TOWER_X,y1:GROUND_Y,x2:TOWER_X+dir*towerShadowPx,y2:GROUND_Y,
+    stroke:"var(--shadow)","stroke-width":14,"stroke-linecap":"round",opacity:.85}));
+  svg.appendChild(mk("rect",{x:TOWER_X-towerW/2,y:towerTopY,width:towerW,height:GROUND_Y-towerTopY,
+    fill:"var(--tower)",opacity:.85,rx:3}));
+  // windows
+  for(let wy=towerTopY+14; wy<GROUND_Y-12; wy+=20){
+    svg.appendChild(mk("rect",{x:TOWER_X-towerW/2+6,y:wy,width:6,height:9,fill:"#1A0E08",opacity:.5}));
+    svg.appendChild(mk("rect",{x:TOWER_X+towerW/2-12,y:wy,width:6,height:9,fill:"#1A0E08",opacity:.5}));
+  }
+  const towerLabel=mk("text",{x:TOWER_X,y:towerTopY-16,"text-anchor":"middle","font-size":14,
+    "font-family":"var(--jp)",fill:"var(--tower)","font-weight":700});
+  towerLabel.textContent="タワー ？m";
+  svg.appendChild(towerLabel);
+
+  // shadow length tick marks + labels
+  function shadowTick(x1,x2,y,color,label){
+    svg.appendChild(mk("line",{x1,y1:y+14,x2,y2:y+22,stroke:color,"stroke-width":2}));
+    svg.appendChild(mk("line",{x1:x2,y1:y+14,x2,y2:y+22,stroke:color,"stroke-width":2}));
+    const t=mk("text",{x:(x1+x2)/2,y:y+38,"text-anchor":"middle","font-size":12,"font-family":"var(--mono)",fill:color,"font-weight":700});
+    t.textContent=label;
+    svg.appendChild(t);
+  }
+  shadowTick(STICK_X, STICK_X+dir*stickShadowPx, GROUND_Y, "var(--stick)", stickShadowM.toFixed(2)+"m");
+  shadowTick(TOWER_X, TOWER_X+dir*towerShadowPx, GROUND_Y, "var(--tower)", towerShadowM.toFixed(2)+"m");
+
+  // update side panel
+  document.getElementById("stickH").textContent=STICK_REAL_H.toFixed(1)+" m";
+  document.getElementById("stickS").textContent=stickShadowM.toFixed(2)+" m";
+  document.getElementById("towerS").textContent=towerShadowM.toFixed(2)+" m";
+  document.getElementById("ratioCheck").textContent=(STICK_REAL_H/stickShadowM).toFixed(3);
+  document.getElementById("ratioCheck2").textContent= revealed ? (TOWER_REAL_H/towerShadowM).toFixed(3) : "？を解いてみよう";
+
+  if(revealed){
+    document.getElementById("towerH").textContent=TOWER_REAL_H.toFixed(1)+" m";
+    towerLabel.textContent="タワー "+TOWER_REAL_H.toFixed(1)+"m";
+  } else {
+    document.getElementById("towerH").textContent="？";
+  }
+
+  window._currentStickShadowM=stickShadowM;
+  window._currentTowerShadowM=towerShadowM;
+}
+
+let revealed=false;
+
+function toast(msg){
+  const el=document.getElementById("toast");
+  el.textContent=msg; el.classList.add("show");
+  clearTimeout(toast._t); toast._t=setTimeout(()=>el.classList.remove("show"),2000);
+}
+
+function checkGuess(){
+  const val=parseFloat(document.getElementById("guessInput").value);
+  const box=document.getElementById("resultBox");
+  if(isNaN(val)){
+    box.className="result show bad"; box.textContent="数字を入力してね";
+    return;
+  }
+  const correct = STICK_REAL_H * window._currentTowerShadowM / window._currentStickShadowM;
+  const diff=Math.abs(val-correct);
+  const pct=Math.abs(diff/correct*100);
+  if(pct<3){
+    box.className="result show good";
+    box.textContent=`🎉 正解！ 本当の高さは ${correct.toFixed(1)}m でした`;
+    revealed=true; render();
+  } else {
+    box.className="result show bad";
+    box.textContent=`もう少し！ ヒント: 棒の比（高さ÷影）と同じ比になるはず`;
+  }
+}
+
+document.getElementById("sunSlider").addEventListener("input",e=>{
+  sunAngleDeg=parseInt(e.target.value,10);
+  document.getElementById("sunVal").textContent=sunAngleDeg+"°";
+  render();
+});
+document.getElementById("checkBtn").addEventListener("click",checkGuess);
+document.getElementById("newBtn").addEventListener("click",()=>{
+  randomTower(); revealed=false;
+  document.getElementById("guessInput").value="";
+  document.getElementById("resultBox").className="result";
+  render();
+  toast("新しいタワーが現れました！");
+});
+document.getElementById("revealBtn").addEventListener("click",()=>{
+  revealed=true; render();
+  toast(`タワーの本当の高さは ${TOWER_REAL_H.toFixed(1)}m でした`);
+});
+
+randomTower();
+render();
+})();
+</script>
+</body>
+</html>

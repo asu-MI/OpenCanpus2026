@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>心を読むAI ― ジャンケン勝負</title>
+<style>
+  :root{
+    --bg:#15131C;
+    --panel:#1D1A28;
+    --panel2:#241F33;
+    --line:#332C45;
+    --ink:#F4F1FA;
+    --sub:#9C93B5;
+    --you:#FF5A8A;
+    --ai:#5AC8FA;
+    --win:#3DDC97;
+    --lose:#FF5A6A;
+    --tie:#FFC23D;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --jp:"Hiragino Maru Gothic ProN","Hiragino Sans","Hiragino Kaku Gothic ProN",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;}
+  body{
+    font-family:var(--jp);color:var(--ink);background:
+      radial-gradient(circle at 20% -10%, #2A2240 0%, transparent 55%),
+      radial-gradient(circle at 100% 110%, #1A2E3A 0%, transparent 50%),
+      var(--bg);
+    -webkit-user-select:none;user-select:none;overflow:hidden;
+  }
+  .app{display:flex;height:100vh;height:100dvh;padding:14px;gap:14px;}
+  .stage{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:10px;}
+  .titlebar{display:flex;align-items:baseline;gap:12px;margin:2px 4px 0;}
+  .titlebar h1{font-size:22px;margin:0;font-weight:800;letter-spacing:.01em;}
+  .titlebar .tag{font-size:12px;color:var(--sub);background:var(--panel);border:1px solid var(--line);
+    padding:3px 9px;border-radius:999px;}
+  .arena{flex:1 1 auto;background:var(--panel);border:1px solid var(--line);border-radius:22px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;
+    overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.35);}
+  .vs{display:flex;align-items:center;gap:48px;}
+  .side{display:flex;flex-direction:column;align-items:center;gap:10px;}
+  .side .who{font-size:13px;font-weight:800;letter-spacing:.06em;color:var(--sub);}
+  .hand{font-size:108px;line-height:1;filter:drop-shadow(0 8px 18px rgba(0,0,0,.4));
+    transition:transform .12s;}
+  .hand.shake{animation:shake .3s ease-in-out infinite;}
+  @keyframes shake{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+  .versus{font-family:var(--mono);font-size:28px;color:var(--sub);font-weight:300;}
+  .result{position:absolute;top:22px;left:50%;transform:translateX(-50%);font-size:16px;
+    font-weight:800;padding:8px 20px;border-radius:999px;opacity:0;transition:.25s;white-space:nowrap;}
+  .result.show{opacity:1;}
+  .result.win{background:rgba(61,220,151,.16);color:var(--win);}
+  .result.lose{background:rgba(255,90,106,.16);color:var(--lose);}
+  .result.tie{background:rgba(255,194,61,.16);color:var(--tie);}
+  .confidence{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);
+    font-size:12px;color:var(--sub);text-align:center;max-width:80%;}
+  .confidence b{color:var(--ai);}
+  .choices{display:flex;gap:14px;padding:4px 4px 8px;}
+  .choices button{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:18px;
+    padding:18px 0;font-size:46px;cursor:pointer;transition:transform .08s,background .15s,border-color .15s;}
+  .choices button:active{transform:scale(.92);background:var(--panel2);border-color:var(--you);}
+  .choices button:disabled{opacity:.35;}
+
+  .panel{flex:0 0 360px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;}
+  .lead{font-size:13.5px;line-height:1.65;color:var(--sub);margin:0;}
+  .lead b{color:var(--ink);}
+  .scoreboard{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+  .sb{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:11px;text-align:center;}
+  .sb .k{font-size:11px;color:var(--sub);font-weight:700;}
+  .sb .v{font-family:var(--mono);font-size:26px;font-weight:600;margin-top:2px;}
+  .sb.you .v{color:var(--you);} .sb.ai .v{color:var(--ai);} .sb.tie .v{color:var(--tie);}
+  .barwrap{margin-top:12px;}
+  .barlabel{display:flex;justify-content:space-between;font-size:11px;color:var(--sub);margin-bottom:5px;}
+  .bar{height:10px;border-radius:999px;background:var(--panel2);overflow:hidden;display:flex;border:1px solid var(--line);}
+  .bar > div{height:100%;}
+  .bar .you-bar{background:var(--you);}
+  .bar .ai-bar{background:var(--ai);}
+  .accbig{font-family:var(--mono);font-size:42px;font-weight:700;color:var(--ai);text-align:center;margin:6px 0 2px;}
+  .acclabel{text-align:center;font-size:12px;color:var(--sub);}
+  .history{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px;}
+  .hchip{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+    font-size:16px;background:var(--panel2);border:1px solid var(--line);}
+  .hchip.w{border-color:var(--win);} .hchip.l{border-color:var(--lose);} .hchip.t{border-color:var(--tie);}
+  .actions{display:flex;flex-direction:column;gap:8px;}
+  .btn{border:none;border-radius:14px;padding:13px;font-family:var(--jp);font-size:15px;font-weight:800;cursor:pointer;}
+  .btn:active{transform:scale(.97);}
+  .btn-ghost{background:var(--panel2);border:1px solid var(--line);color:var(--ink);}
+  .explain h3{font-size:14px;margin:0 0 6px;}
+  .explain p{font-size:12.5px;line-height:1.65;color:var(--sub);margin:0 0 8px;}
+  .pill{display:inline-block;background:rgba(90,200,250,.12);color:var(--ai);font-size:11px;
+    font-weight:700;border-radius:999px;padding:3px 9px;margin:2px 4px 2px 0;}
+  .modelrow{display:flex;justify-content:space-between;align-items:center;font-size:12px;
+    padding:6px 0;border-top:1px solid var(--line);}
+  .modelrow:first-of-type{border-top:none;}
+  .modelrow .name{color:var(--sub);font-weight:700;}
+  .modelrow .dot{width:8px;height:8px;border-radius:50%;background:var(--line);margin-left:6px;display:inline-block;}
+  .modelrow.active .dot{background:var(--ai);box-shadow:0 0 8px var(--ai);}
+  .modelrow .pct{font-family:var(--mono);}
+
+  @media (max-width:820px),(orientation:portrait){
+    .app{flex-direction:column;}
+    .panel{flex:0 0 auto;flex-direction:row;flex-wrap:wrap;overflow:visible;}
+    .panel .card{flex:1 1 240px;}
+    .stage{min-height:50vh;}
+    .hand{font-size:80px;}
+    .vs{gap:24px;}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="stage">
+    <div class="titlebar">
+      <h1>心を読むAI</h1>
+      <span class="tag">ジャンケン勝負</span>
+    </div>
+    <div class="arena">
+      <div class="result" id="result"></div>
+      <div class="vs">
+        <div class="side">
+          <div class="who">YOU</div>
+          <div class="hand" id="youHand">✊</div>
+        </div>
+        <div class="versus">VS</div>
+        <div class="side">
+          <div class="who">AI</div>
+          <div class="hand" id="aiHand">🤖</div>
+        </div>
+      </div>
+      <div class="confidence" id="conf">何回か出すと、AIがきみの「クセ」を読み始めます</div>
+    </div>
+    <div class="choices">
+      <button data-m="rock">✊</button>
+      <button data-m="scissors">✌️</button>
+      <button data-m="paper">✋</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="card">
+      <p class="lead">グー・チョキ・パーを出してね。<b>完全にランダムに出せばAIの勝率は1/3</b>のはず。でも人間はクセが出てしまう…AIはその<b>クセを学習</b>して先読みします。</p>
+      <div class="scoreboard">
+        <div class="sb you"><div class="k">YOU</div><div class="v" id="sYou">0</div></div>
+        <div class="sb tie"><div class="k">引き分け</div><div class="v" id="sTie">0</div></div>
+        <div class="sb ai"><div class="k">AI</div><div class="v" id="sAi">0</div></div>
+      </div>
+      <div class="barwrap">
+        <div class="barlabel"><span>あなた</span><span>AI</span></div>
+        <div class="bar"><div class="you-bar" id="barYou" style="width:50%"></div><div class="ai-bar" id="barAi" style="width:50%"></div></div>
+      </div>
+      <div class="history" id="history"></div>
+    </div>
+
+    <div class="card">
+      <div class="accbig" id="aiAcc">—%</div>
+      <div class="acclabel">AIがきみの手を当てた割合<br>（ランダムなら33%のはず）</div>
+      <div id="modelList" style="margin-top:10px;"></div>
+    </div>
+
+    <div class="card actions">
+      <button class="btn btn-ghost" id="reset">最初からやり直す</button>
+    </div>
+
+    <div class="card explain">
+      <h3>これ、何の仕組み？</h3>
+      <p>AIは「<b>マルコフ連鎖</b>」という統計モデルで、あなたの直前の1手・2手・3手の並びから、次の手の確率を計算しています。複数のモデルを同時に走らせ、いちばん当たっている物差しをそのつど選ぶしくみです。</p>
+      <p>完全にランダムな人間はいません。連勝が続くと変えたくなる、同じ手が続くと飽きる…そうした心理的なクセこそが、数学的なパターンとしてAIに読まれてしまうのです。</p>
+      <span class="pill">確率・統計</span><span class="pill">マルコフ連鎖</span><span class="pill">機械学習の基礎</span>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const MOVES=["rock","paper","scissors"];
+const EMOJI={rock:"✊",paper:"✋",scissors:"✌️"};
+const NAME={rock:"グー",paper:"パー",scissors:"チョキ"};
+const BEATS={rock:"scissors",paper:"rock",scissors:"paper"}; // key beats value
+const COUNTER={rock:"paper",paper:"scissors",scissors:"rock"}; // beats key
+const reduce=window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+
+let history=[];          // human move history
+let score={you:0,ai:0,tie:0};
+let recent=[];           // win/lose/tie chips
+let modelScore={1:0.34,2:0.34,3:0.34}; // smoothed recent accuracy per order
+let predictHits=0, predictTotal=0;
+
+function makeModels(){
+  return [1,2,3].map(order=>({order, table:new Map()}));
+}
+let models=makeModels();
+
+function keyOf(arr){return arr.join(",");}
+function updateModels(){
+  for(const m of models){
+    if(history.length<=m.order) continue;
+    const ctx=history.slice(history.length-1-m.order, history.length-1);
+    const actual=history[history.length-1];
+    const k=keyOf(ctx);
+    if(!m.table.has(k)) m.table.set(k,{rock:0,paper:0,scissors:0,n:0});
+    const row=m.table.get(k);
+    row[actual]++; row.n++;
+  }
+}
+function predictWith(m){
+  if(history.length<m.order) return null;
+  const ctx=history.slice(history.length-m.order, history.length);
+  const row=m.table.get(keyOf(ctx));
+  if(!row||row.n===0) return null;
+  let best=null,bestC=-1;
+  for(const mv of MOVES){ if(row[mv]>bestC){bestC=row[mv];best=mv;} }
+  return {move:best, confidence:bestC/row.n, n:row.n, order:m.order};
+}
+function chooseModel(){
+  let best=models[0], bestS=-1;
+  for(const m of models){ if(modelScore[m.order]>bestS){bestS=modelScore[m.order];best=m;} }
+  return best;
+}
+
+function renderModelList(predUsed){
+  const div=document.getElementById("modelList");
+  const labels={1:"直前1手だけ見る",2:"直前2手のパターン",3:"直前3手のパターン"};
+  div.innerHTML = models.map(m=>{
+    const pct=Math.round((modelScore[m.order])*100);
+    const active = predUsed && predUsed.order===m.order;
+    return `<div class="modelrow ${active?'active':''}"><span class="name">${labels[m.order]}<span class="dot"></span></span><span class="pct">${pct}%</span></div>`;
+  }).join("");
+}
+
+function vibrate(ms){ if(navigator.vibrate){ try{navigator.vibrate(ms);}catch(e){} } }
+
+let busy=false;
+function play(humanMove){
+  if(busy) return; busy=true;
+  const buttons=[...document.querySelectorAll(".choices button")];
+  buttons.forEach(b=>b.disabled=true);
+
+  const youHandEl=document.getElementById("youHand");
+  const aiHandEl=document.getElementById("aiHand");
+  youHandEl.classList.add("shake"); aiHandEl.classList.add("shake");
+  youHandEl.textContent="🤜"; aiHandEl.textContent="🤖";
+
+  // model picks BEFORE we reveal/learn from this move
+  const chosen=chooseModel();
+  const pred=predictWith(chosen);
+  const guess = pred ? pred.move : MOVES[Math.floor(Math.random()*3)];
+  const aiMove = COUNTER[guess];
+
+  const delay=reduce?60:520;
+  setTimeout(()=>{
+    youHandEl.classList.remove("shake"); aiHandEl.classList.remove("shake");
+    youHandEl.textContent=EMOJI[humanMove];
+    aiHandEl.textContent=EMOJI[aiMove];
+
+    // score this round's prediction accuracy
+    if(pred){
+      predictTotal++; if(pred.move===humanMove) predictHits++;
+    }
+
+    let outcome;
+    if(aiMove===humanMove) outcome="tie";
+    else if(BEATS[aiMove]===humanMove) outcome="ai";
+    else outcome="you";
+
+    if(outcome==="you"){score.you++; toastResult("win","🎉 あなたの勝ち！");vibrate(0);}
+    else if(outcome==="ai"){score.ai++; toastResult("lose","🤖 AIの勝ち…");vibrate(40);}
+    else {score.tie++; toastResult("tie","🤝 引き分け");}
+
+    recent.push(outcome);
+    if(recent.length>24) recent.shift();
+
+    // update model recent-accuracy scores using ALL models' predictions for this round
+    for(const m of models){
+      const p=predictWith(m);
+      if(p){
+        modelScore[m.order]=modelScore[m.order]*0.85 + (p.move===humanMove?1:0)*0.15;
+      }
+    }
+
+    history.push(humanMove);
+    updateModels();
+
+    updateUI(pred,chosen);
+    busy=false;
+    buttons.forEach(b=>b.disabled=false);
+  }, delay);
+}
+
+function toastResult(kind,text){
+  const el=document.getElementById("result");
+  el.className="result show "+kind;
+  el.textContent=text;
+  clearTimeout(toastResult._t);
+  toastResult._t=setTimeout(()=>el.classList.remove("show"),1300);
+}
+
+function updateUI(pred,chosen){
+  document.getElementById("sYou").textContent=score.you;
+  document.getElementById("sAi").textContent=score.ai;
+  document.getElementById("sTie").textContent=score.tie;
+  const total=Math.max(1,score.you+score.ai);
+  const pctYou=Math.round(score.you/total*100);
+  document.getElementById("barYou").style.width=pctYou+"%";
+  document.getElementById("barAi").style.width=(100-pctYou)+"%";
+
+  const acc = predictTotal>0 ? Math.round(predictHits/predictTotal*100) : null;
+  document.getElementById("aiAcc").textContent = acc===null? "—%" : acc+"%";
+
+  const confEl=document.getElementById("conf");
+  if(history.length<4){
+    confEl.textContent="何回か出すと、AIがきみの「クセ」を読み始めます";
+  } else if(pred){
+    confEl.innerHTML = `直前の手の並びから、次は <b>${NAME[pred.move]}</b> が ${Math.round(pred.confidence*100)}% の確率と予測（参考度 ${pred.n}回分）`;
+  } else {
+    confEl.textContent="まだ十分なデータがありません。あと数回どうぞ";
+  }
+
+  renderModelList(pred);
+
+  const hwrap=document.getElementById("history");
+  hwrap.innerHTML = recent.map(r=>{
+    const cls=r==="you"?"w":(r==="ai"?"l":"t");
+    const ic=r==="you"?"○":(r==="ai"?"✕":"△");
+    return `<div class="hchip ${cls}">${ic}</div>`;
+  }).join("");
+}
+
+function reset(){
+  history=[]; score={you:0,ai:0,tie:0}; recent=[];
+  modelScore={1:0.34,2:0.34,3:0.34}; predictHits=0; predictTotal=0;
+  models=makeModels();
+  document.getElementById("youHand").textContent="✊";
+  document.getElementById("aiHand").textContent="🤖";
+  updateUI(null,null);
+}
+
+document.querySelectorAll(".choices button").forEach(b=>{
+  b.addEventListener("click",()=>play(b.dataset.m));
+});
+document.getElementById("reset").addEventListener("click",reset);
+
+reset();
+})();
+</script>
+</body>
+</html>
